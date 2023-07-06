@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Slide Puzzle</title>
+    <style>
+        #puzzle {
+            width: 250px;
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .tile {
+            width: 80px;
+            height: 80px;
+            background-color: #ccc;
+            border: 1px solid #999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .container {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <label for="size-select">パズルサイズ：</label>
+        <select id="size-select">
+            <option value="3">3x3</option>
+            <option value="4">4x4</option>
+            <option value="5">5x5</option>
+            <option value="6">6x6</option>
+            <option value="7">7x7</option>
+        </select>
+        <button id="start-button">スタート</button>
+    </div>
+    <div id="puzzle"></div>
+
+    <script>
+        // パズルの要素とタイルの配列
+        const puzzleElement = document.getElementById('puzzle');
+        const tiles = [];
+
+        // タイルのクリックイベントハンドラ
+        function tileClickHandler(index) {
+            const emptyIndex = tiles.findIndex(tile => tile.value === null);
+            if (isAdjacent(index, emptyIndex)) {
+                swapTiles(index, emptyIndex);
+                updatePuzzle();
+                if (isSolved()) {
+                    setTimeout(() => {
+                        alert('パズルを完成させました！');
+                    }, 100);
+                }
+            }
+        }
+
+        // インデックスが隣接しているかどうかを判定
+        function isAdjacent(index1, index2) {
+            const size = Math.sqrt(tiles.length);
+            const row1 = Math.floor(index1 / size);
+            const col1 = index1 % size;
+            const row2 = Math.floor(index2 / size);
+            const col2 = index2 % size;
+
+            return (
+                (Math.abs(row1 - row2) === 1 && col1 === col2) ||
+                (Math.abs(col1 - col2) === 1 && row1 === row2)
+            );
+        }
+
+        // タイルのスワップ
+        function swapTiles(index1, index2) {
+            [tiles[index1], tiles[index2]] = [tiles[index2], tiles[index1]];
+        }
+
+        // パズルの更新
+        function updatePuzzle() {
+            puzzleElement.innerHTML = '';
+            tiles.forEach((tile, index) => {
+                const tileElement = document.createElement('div');
+                tileElement.className = 'tile';
+                tileElement.textContent = tile.value !== null ? tile.value : '';
+                tileElement.addEventListener('click', () => tileClickHandler(index));
+                puzzleElement.appendChild(tileElement);
+            });
+        }
+
+        // パズルが完成しているかどうかを判定
+        function isSolved() {
+            for (let i = 0; i < tiles.length - 1; i++) {
+                if (tiles[i].value !== i + 1) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // 初期化
+        function initialize(size) {
+            const elem = document.getElementById("puzzle");
+            const x = 80 * size * 1.15;
+            console.log("width: " + x + "px");
+            elem.style = "width: " + x + "px;";
+
+
+            const numTiles = size * size;
+            tiles.length = 0;
+            for (let i = 1; i < numTiles; i++) {
+                tiles.push({ value: i, index: i - 1 });
+            }
+            tiles.push({ value: null, index: numTiles - 1 });
+            
+            shufflePuzzle();
+        }
+
+        // パズルのシャッフル
+        function shufflePuzzle() {
+            const numTiles = tiles.length;
+            for (let i = numTiles - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                swapTiles(i, j);
+            }
+            updatePuzzle();
+        }
+
+        // スタートボタンのクリックイベントハンドラ
+        const startButton = document.getElementById('start-button');
+        startButton.addEventListener('click', () => {
+            const sizeSelect = document.getElementById('size-select');
+            const selectedSize = parseInt(sizeSelect.value, 10);
+            initialize(selectedSize);
+        });
+
+        // ページのロード時に初期化（デフォルトサイズは3x3）
+        window.addEventListener('load', () => {
+            initialize(3);
+        });
+    </script>
+</body>
+</html>
